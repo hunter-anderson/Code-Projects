@@ -16,6 +16,20 @@ class Solution:
             return False
         return True
 
+################################################################################
+#   Faster solution?
+    def isValid_v2(self, s:str) -> bool:
+        stack = []
+        complementary = {'(': ')', '[': ']', '{': '}'}
+        for c in s:
+            if (c in complementary):
+                stack.append(c)
+            else:
+                if (len(stack) == 0 or complementary[stack.pop()] != c):
+                    return False
+        return len(stack) == 0
+
+################################################################################
 #Testing Time
 test1 = "()[]{}" #True
 test2 = "{[()]}" #True
