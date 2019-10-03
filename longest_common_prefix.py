@@ -1,5 +1,6 @@
 #Longest Common Prefix
-from typing import List
+from typing import 
+#Leetcode url - https://leetcode.com/problems/longest-common-prefix
 class Solution:
     def longestCommonPrefix(self, strs: List[str]) -> str:
         if len(strs) == 0:
@@ -21,3 +22,9 @@ tests = [test1, test2, test3]
 a = Solution()
 for test in tests:
     print(a.longestCommonPrefix(test))
+        for i in range(1, len(strs)):
+            while (prefix not in strs[i]):
+                prefix = prefix[:-1]
+                if not len(prefix):
+                    return ""
+        return prefix
