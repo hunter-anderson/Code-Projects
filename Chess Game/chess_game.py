@@ -11,6 +11,7 @@
 # R H B Q K B H R #
 #######WHITE#######
 
+from colorama import Fore, Back, Style
 #class Chessboard that will be an 8x8 array that contains chess piece objects
 class ChessBoard:
     def __init__(self):
@@ -70,23 +71,35 @@ class ChessBoard:
 
     #Helper method to print state of chess board to terminal
     def printChessBoard(self):
-        s = "        1           2           3           4" + \
-            "           5           6           7           8"
-        print('\n\n\n' + s)
+        s = "        1          2          3          4" + \
+            "          5          6          7          8      "
+        print(Back.RED + Fore.BLACK + '\n\n\n' + s)
 
         i = 0
         y_axis = [' A', ' B', ' C', ' D', ' E', ' F', ' G', ' H']
         for row in self.chessboard:
-            print("   " + "-"*97)
-
-            print(y_axis[i], end=" ")
+            print(Back.RED + Fore.BLACK + "   " + "-"*89)
+            print(Back.RED + Fore.BLACK + y_axis[i] + " ", end="")
             for piece in row:
-                print("| ", str(piece).center(8), end=" ")
-            print("|")
+
+                if piece != "" and piece.side == "white":
+                    print(Back.RED + Fore.BLACK + "| " +
+                        Back.RED + Fore.WHITE + str(piece).center(8) \
+                        + " ", end="")
+
+                elif piece != "" and piece.side == "black":
+                    print(Back.RED + Fore.BLACK + "| " + str(piece).center(8) \
+                        + " ", end="")
+
+                else:
+                    print(Back.RED + Fore.BLACK + "| " + str(piece).center(8) \
+                        + " ", end="")
+
+            print(Back.RED + Fore.BLACK + "|")
 
             i += 1
 
-        print("   " + "-"*97 + '\n\n')
+        print(Back.RED + Fore.BLACK + "   " + "-"*89 + '\n\n')
 
     #method to detect if input is a valid location
     def validLocation(self, location: str) -> bool:
@@ -154,6 +167,9 @@ class chessPiece:
             board[otherLoc[1]][otherLoc[0]] = self
             board[y][x] = ""
 
+        elif otherPiece.side == self.side:
+            return -1
+            
         #take out the piece and set it as dead
         else:
             otherPiece.pos = (-1, -1)
@@ -177,23 +193,24 @@ class chessPiece:
         if start == end:
             return True
 
-        """
-        SECTION FOR CHECKING PATH OF ROOK
-        """
         if self.piece == "rook":
             if board[start[1]][start[0]] == "" or self.pos == start:
-                print("checking path for rook")
                 #moving vertically
                 if start[0] - end[0] == 0:
-                    print("vertical move")
                     i = int((end[1] - start[1]) / abs(end[1] - start[1]))
                     return self.checkPath((start[0], start[1]+i), end, board)
 
                 #moving horizontally
                 elif start[1] - end[1] == 0:
-                    print("horizontal move")
                     i = int((end[0] - start[0]) / abs(end[0] - start[0]))
                     return self.checkPath((start[0]+i, start[1]), end, board)
+
+        elif self.piece == "bishop":
+            if board[start[1]][start[0]] == "" or self.pos == start:
+                #four possible directions to move, NW NE SW SE
+                i = int((end[0] - start[0]) / abs(end[0] - start[0]))
+                j = int((end[1] - start[1]) / abs(end[1] - start[1]))
+                return self.checkPath((start[0]+i, start[1]+j), end, board)
 
         return False
 
@@ -320,16 +337,109 @@ class chessRook(chessPiece):
                     return 1
         return -1
 
-
-
 class chessKnight(chessPiece):
-    pass
+    def move(self, otherLoc, board):
+        """
+        Knights move in L-shape, can hop over pieces and therefore no path check
+        Return true for a successful move, false if not
+        """
+        x,y = self.pos
+        otherPiece = board.chessboard[otherLoc[1]][otherLoc[0]]
+
+        #check for matching sides
+        if self.side == board.turn.lower():
+
+            #check if movement is an L-shape
+            x_diff = abs(x-otherLoc[0])
+            y_diff = abs(y-otherLoc[1])
+            if (x_diff == 2 and y_diff == 1) or (x_diff == 1 and y_diff == 2):
+
+                #valid move, kill the piece
+                self.kill(otherLoc, board.chessboard)
+                return 1
+
+        return -1
 
 class chessBishop(chessPiece):
-    pass
+    def move(self, otherLoc, board):
+        """
+        Bishops move diagonal, must path check
+        Return true for a successful move, false if not
+        """
+        x,y = self.pos
+        otherPiece = board.chessboard[otherLoc[1]][otherLoc[0]]
+
+        #check for matching sides
+        if self.side == board.turn.lower():
+
+            #check if movement is diagonal
+            x_diff = abs(x-otherLoc[0])
+            y_diff = abs(y-otherLoc[1])
+            if x_diff == y_diff:
+
+                #valid move, check path and kill if successful
+                if self.checkPieces(otherLoc, board.chessboard):
+                    self.kill(otherLoc, board.chessboard)
+                    return 1
+
+        return -1
 
 class chessKing(chessPiece):
-    pass
+    def move(self, otherLoc, board):
+        """
+        King moves to 1 space away.
+        Return true for a successful move, false if not
+        """
+        x,y = self.pos
+        otherPiece = board.chessboard[otherLoc[1]][otherLoc[0]]
+
+        #check for matching sides
+        if self.side == board.turn.lower():
+
+            #check if movement is 1 away
+            x_diff = abs(x-otherLoc[0])
+            y_diff = abs(y-otherLoc[1])
+            if (x_diff == 0 or x_diff == 1) and (y_diff == 0 or y_diff == 1):
+
+                #valid move, kill piece
+                self.kill(otherLoc, board.chessboard)
+                return 1
+
+        return -1
 
 class chessQueen(chessPiece):
-    pass
+    def move(self, otherLoc, board):
+        """
+        Queen inherits bishop or rook movement skills
+        Return true for a successful move, false if not
+        """
+        x,y = self.pos
+        otherPiece = board.chessboard[otherLoc[1]][otherLoc[0]]
+
+        #check for matching sides
+        if self.side == board.turn.lower():
+
+            x_diff = abs(x-otherLoc[0])
+            y_diff = abs(y-otherLoc[1])
+
+            #check if rook
+            if x_diff == 0 or y_diff == 0:
+                self.piece = "rook"
+
+                #check if pieces exist between location, kill if successful
+                if self.checkPieces(otherLoc, board.chessboard):
+                    self.kill(otherLoc, board.chessboard)
+                    self.piece = "queen"
+                    return 1
+
+            #check if bishop
+            elif x_diff == y_diff:
+                self.piece = "bishop"
+
+                #check if pieces exist between location, kill if successful
+                if self.checkPieces(otherLoc, board.chessboard):
+                    self.kill(otherLoc, board.chessboard)
+                    self.piece = "queen"
+                    return 1
+
+        return -1

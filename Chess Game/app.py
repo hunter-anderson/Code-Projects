@@ -5,33 +5,12 @@ Description: Simple game of chess played through the command-line interface
 """
 
 import chess_game
-
-def getUserInput(board, move):
-    """
-    Return -1 for quit, 0 for failed input, and entry if pass
-    """
-    if move.lower() == "quit":
-        return -1
-
-    entry = move.replace(" ", "").split(',')
-    if not board.validLocation(entry[0]) or not board.validLocation(entry[1]):
-        print("Invalid input")
-        return 0
-
-    start = board.convertLocation(entry[0])
-    start = board.chessboard[start[1]][start[0]]
-    if start == "":
-        print("Invalid input")
-        return 0
-    elif entry[0] == entry[1]:
-        print("invalid input")
-        return 0
-
-    return entry
-
-
+import colorama
+import tkinter
 
 def main():
+    colorama.init(autoreset=True)
+
     board = chess_game.ChessBoard()
 
     #white gets to go first
@@ -39,6 +18,7 @@ def main():
     turn_bit = 0
     board.turn = turn[turn_bit]
     move = ""
+
     board.printChessBoard()
 
     while True:
@@ -64,7 +44,32 @@ def main():
             board.printChessBoard()
 
     print("\nGoodbye!\n")
+
+    colorama.deinit()
     return
+
+def getUserInput(board, move):
+    """
+    Return -1 for quit, 0 for failed input, and entry if pass
+    """
+    if move.lower() == "quit" or move.lower() == "exit":
+        return -1
+
+    entry = move.replace(" ", "").split(',')
+    if not board.validLocation(entry[0]) or not board.validLocation(entry[1]):
+        print("Invalid input")
+        return 0
+
+    start = board.convertLocation(entry[0])
+    start = board.chessboard[start[1]][start[0]]
+    if start == "":
+        print("Invalid input")
+        return 0
+    elif entry[0] == entry[1]:
+        print("invalid input")
+        return 0
+
+    return entry
 
 if __name__ == "__main__":
     main()
